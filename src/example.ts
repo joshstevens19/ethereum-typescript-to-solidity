@@ -1,4 +1,4 @@
-// COMPILE INTO
+// COMPILE INTO https://github.com/WETH10/WETH10/blob/main/contracts/WETH10.sol (random example)
 
 // contract WETH10 {
 //     string public constant name = "Wrapped Ether v10";
@@ -10,6 +10,8 @@
 
 //     /// @dev Records amount of WETH10 token owned by account.
 //     mapping (address => uint256) public override balanceOf;
+
+//     event Transfer(address indexed from, address indexed to, uint256 value);
 
 //     /// @dev Records current ERC2612 nonce for account. This value must be included whenever signature is generated for {permit}.
 //     /// Every successful call to {permit} increases account's nonce by one. This prevents signature from being used multiple times.
@@ -45,7 +47,17 @@
 //     function totalSupply() external view override returns (uint256) {
 //         return address(this).balance + flashMinted;
 //     }
+
+//     function deposit() external override payable {
+//         // _mintTo(msg.sender, msg.value);
+//         balanceOf[msg.sender] += msg.value;
+//         emit Transfer(address(0), msg.sender, msg.value);
+//     }
 // }
+
+interface Address {
+  balance: number;
+}
 
 class SolidityTs {
   public keccak256(value: string): string {
@@ -65,7 +77,7 @@ class SolidityTs {
     return {} as any;
   }
 
-  public address(item: string | this): { balance: number } {
+  public address(item: string | this | number): Address {
     // tslint:disable-next-line: no-any
     return {} as any;
   }
@@ -74,6 +86,71 @@ class SolidityTs {
     // tslint:disable-next-line: no-any
     return {} as any;
   }
+
+  public get msg(): { value: any; sender: Address } {
+    // tslint:disable-next-line: no-any
+    return {} as any;
+  }
+
+  public emit(event: void): void {}
+}
+
+class Mapping<TKey, TValue> {
+  _key!: TKey;
+  _value!: TValue;
+
+  get value(): TValue {
+    // tslint:disable-next-line: no-any
+    return {} as any;
+  }
+
+  set value(): void {
+    // tslint:disable-next-line: no-any
+  }
+}
+
+function view() {
+  console.log('first(): factory evaluated');
+  return function (
+    target: any,
+    propertyKey: string,
+    descriptor: PropertyDescriptor
+  ) {
+    console.log('first(): called');
+  };
+}
+
+function pure() {
+  console.log('first(): factory evaluated');
+  return function (
+    target: any,
+    propertyKey: string,
+    descriptor: PropertyDescriptor
+  ) {
+    console.log('first(): called');
+  };
+}
+
+function payable() {
+  console.log('first(): factory evaluated');
+  return function (
+    target: any,
+    propertyKey: string,
+    descriptor: PropertyDescriptor
+  ) {
+    console.log('first(): called');
+  };
+}
+
+function _external() {
+  console.log('first(): factory evaluated');
+  return function (
+    target: any,
+    propertyKey: string,
+    descriptor: PropertyDescriptor
+  ) {
+    console.log('first(): called');
+  };
 }
 
 // tslint:disable-next-line: max-classes-per-file
@@ -92,6 +169,11 @@ class Contract extends SolidityTs {
 
   public readonly deploymentChainId: number;
   private readonly _DOMAIN_SEPARATOR: string;
+
+  transfer!: (from: Address, to: Address, value: number) => void;
+
+  /// @dev Records amount of WETH10 token owned by account.
+  public balanceOf = new Mapping<string, number>();
 
   // tslint:disable-next-line: member-ordering
   public flashMinted!: number;
@@ -124,5 +206,12 @@ class Contract extends SolidityTs {
         this.address(this)
       )
     );
+  }
+
+  @payable()
+  public deposit(): void {
+    // _mintTo(msg.sender, msg.value);
+    this.balanceOf.value += this.msg.value;
+    this.emit(this.transfer(this.address(0), this.msg.sender, this.msg.value));
   }
 }
